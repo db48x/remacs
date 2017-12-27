@@ -240,23 +240,19 @@ pub fn puthash(key: LispObject, value: LispObject, hash_table: LispHashTableRef)
 
 /// Remove KEY from TABLE.
 #[lisp_fn]
-pub fn remhash(key: LispObject, hash_table: LispHashTableRef) -> LispObject {
+pub fn remhash(key: LispObject, hash_table: LispHashTableRef) -> () {
     hash_table.check_impure(LispObject::from_hash_table(hash_table));
     hash_table.remove(key);
-
-    LispObject::constant_nil()
 }
 
 /// Call FUNCTION for all entries in hash table TABLE.
 /// FUNCTION is called with two arguments, KEY and VALUE.
 /// `maphash' always returns nil.
 #[lisp_fn]
-pub fn maphash(function: LispObject, hash_table: LispHashTableRef) -> LispObject {
+pub fn maphash(function: LispObject, hash_table: LispHashTableRef) -> () {
     for (key, value) in hash_table.iter() {
         call!(function, key, value);
     }
-
-    LispObject::constant_nil()
 }
 
 /// Return t if OBJ is a Lisp hash table object.

@@ -14,7 +14,7 @@ use threads::ThreadState;
 
 /// Add N to point; or subtract N if FORWARD is false. N defaults to 1.
 /// Validate the new location. Return nil.
-fn move_point(n: LispObject, forward: bool) -> LispObject {
+fn move_point(n: LispObject, forward: bool) -> () {
     // This used to just set point to 'point + n', and then check
     // to see if it was within boundaries. But now that SET_POINT can
     // potentially do a lot of stuff (calling entering and exiting
@@ -47,8 +47,6 @@ fn move_point(n: LispObject, forward: bool) -> LispObject {
     if signal != Qnil {
         xsignal!(signal);
     }
-
-    LispObject::constant_nil()
 }
 
 /// Move point N characters forward (backward if N is negative).
@@ -60,7 +58,7 @@ fn move_point(n: LispObject, forward: bool) -> LispObject {
 /// right or to the left on the screen.  This is in contrast with
 /// \\[right-char], which see.
 #[lisp_fn(min = "0", intspec = "^p")]
-pub fn forward_char(n: LispObject) -> LispObject {
+pub fn forward_char(n: LispObject) -> () {
     move_point(n, true)
 }
 
@@ -73,7 +71,7 @@ pub fn forward_char(n: LispObject) -> LispObject {
 /// right or to the left on the screen.  This is in contrast with
 /// \\[left-char], which see.
 #[lisp_fn(min = "0", intspec = "^p")]
-pub fn backward_char(n: LispObject) -> LispObject {
+pub fn backward_char(n: LispObject) -> () {
     move_point(n, false)
 }
 
@@ -95,7 +93,7 @@ pub fn forward_point(n: EmacsInt) -> EmacsInt {
 /// instead.  For instance, `(forward-line 0)' does the same thing as
 /// `(beginning-of-line)', except that it ignores field boundaries.
 #[lisp_fn(min = "0", intspec = "^p")]
-pub fn beginning_of_line(mut n: LispObject) -> LispObject {
+pub fn beginning_of_line(mut n: LispObject) -> () {
     if n.is_nil() {
         n = LispObject::from_fixnum(1);
     }
@@ -104,8 +102,6 @@ pub fn beginning_of_line(mut n: LispObject) -> LispObject {
         let pos = LispObject::from_raw(Fline_beginning_position(n.to_raw()));
         set_point(pos.as_fixnum_or_error() as isize);
     };
-
-    LispObject::constant_nil()
 }
 
 /// Move point to end of current line (in the logical order).
@@ -119,7 +115,7 @@ pub fn beginning_of_line(mut n: LispObject) -> LispObject {
 /// not move.  To ignore field boundaries bind `inhibit-field-text-motion'
 /// to t.
 #[lisp_fn(min = "0", intspec = "^p")]
-pub fn end_of_line(n: LispObject) -> LispObject {
+pub fn end_of_line(n: LispObject) -> () {
     let mut num = if n.is_nil() {
         LispObject::from_fixnum(1)
     } else {
@@ -151,7 +147,6 @@ pub fn end_of_line(n: LispObject) -> LispObject {
             break;
         }
     }
-    LispObject::constant_nil()
 }
 
 pub fn initial_keys() {

@@ -286,7 +286,7 @@ pub fn set_process_buffer(process: LispObject, buffer: LispObject) -> LispObject
 /// If PROCESS is a non-blocking network process that hasn't been fully
 /// set up yet, this function will block until socket setup has completed.
 #[lisp_fn]
-pub fn process_send_string(process: LispObject, string: LispStringRef) -> LispObject {
+pub fn process_send_string(process: LispObject, string: LispStringRef) -> () {
     unsafe {
         send_process(
             cget_process(process.to_raw()),
@@ -295,7 +295,6 @@ pub fn process_send_string(process: LispObject, string: LispStringRef) -> LispOb
             string.as_lisp_obj().to_raw(),
         )
     };
-    LispObject::constant_nil()
 }
 
 /// Return the current value of query-on-exit flag for PROCESS.

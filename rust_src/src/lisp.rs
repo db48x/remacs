@@ -118,6 +118,13 @@ where
     }
 }
 
+impl From<()> for LispObject
+{
+    fn from(_v: ()) -> Self {
+        LispObject::constant_nil()
+    }
+}
+
 impl From<LispObject> for bool {
     #[inline]
     fn from(o: LispObject) -> Self {
@@ -748,6 +755,30 @@ impl LispObject {
     pub fn is_record(self) -> bool {
         self.as_vectorlike()
             .map_or(false, |v| v.is_pseudovector(PseudovecType::PVEC_RECORD))
+    }
+}
+
+impl From<LispObject> for LispWindowRef {
+    fn from(o: LispObject) -> Self {
+        o.as_window_or_error()
+    }
+}
+
+impl From<LispWindowRef> for LispObject {
+    fn from(w: LispWindowRef) -> Self {
+        w.as_lisp_obj()
+    }
+}
+
+impl From<LispObject> for LispCharTableRef {
+    fn from(o: LispObject) -> Self {
+        o.as_char_table_or_error()
+    }
+}
+
+impl From<LispCharTableRef> for LispObject {
+    fn from(ct: LispCharTableRef) -> Self {
+        ct.as_lisp_obj()
     }
 }
 
