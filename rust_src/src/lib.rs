@@ -47,6 +47,7 @@ mod str2sig;
 
 mod base64;
 mod buffers;
+mod intervals;
 mod category;
 mod character;
 mod chartable;

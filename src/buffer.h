@@ -257,7 +257,7 @@ bget_overlays_after(const struct buffer *b);
 #define BUF_TEMP_SET_PT(buffer, position) \
   (temp_set_point ((buffer), (position)))
 
-extern void set_point (ptrdiff_t);
+//extern void set_point (ptrdiff_t);
 extern void temp_set_point (struct buffer *, ptrdiff_t);
 extern void set_point_both (ptrdiff_t, ptrdiff_t);
 extern void temp_set_point_both (struct buffer *,

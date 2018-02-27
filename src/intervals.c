@@ -1745,15 +1745,6 @@ temp_set_point (struct buffer *buffer, ptrdiff_t charpos)
 		       buf_charpos_to_bytepos (buffer, charpos));
 }
 
-/* Set point in BUFFER to CHARPOS.  If the target position is
-   before an intangible character, move to an ok place.  */
-
-void
-set_point (ptrdiff_t charpos)
-{
-  set_point_both (charpos, buf_charpos_to_bytepos (current_buffer, charpos));
-}
-
 /* If there's an invisible character at position POS + TEST_OFFS in the
    current buffer, and the invisible property has a `stickiness' such that
    inserting a character at position POS would inherit the property it,
