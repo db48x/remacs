@@ -10,11 +10,12 @@ use remacs_sys::{Fadd_text_properties, Fcons, Fcopy_sequence, Fget_pos_property}
 use remacs_sys::{Qfield, Qinteger_or_marker_p, Qmark_inactive, Qnil};
 use remacs_sys::{buf_charpos_to_bytepos, buffer_overflow, find_before_next_newline, find_field,
                  find_newline, globals, insert, insert_and_inherit, make_string_from_bytes,
-                 maybe_quit, scan_newline_from_point, set_point, set_point_both};
+                 maybe_quit, scan_newline_from_point};
 use remacs_sys::EmacsInt;
 
 use buffers::{get_buffer, BUF_BYTES_MAX};
 use character::dec_pos;
+use intervals::{set_point, set_point_both};
 use lisp::{LispNumber, LispObject};
 use lisp::defsubr;
 use marker::{marker_position_lisp, set_point_from_marker};
@@ -169,7 +170,7 @@ pub fn goto_char(position: LispObject) -> LispObject {
         let cur_buf = ThreadState::current_buffer();
         let pos = clip_to_bounds(cur_buf.begv, num, cur_buf.zv);
         let bytepos = unsafe { buf_charpos_to_bytepos(cur_buf.as_ptr(), pos) };
-        unsafe { set_point_both(pos, bytepos) };
+        set_point_both(pos, bytepos);
     } else {
         wrong_type!(Qinteger_or_marker_p, position)
     };
@@ -699,9 +700,7 @@ pub fn constrain_to_field(
 
         if orig_point != 0 && new_pos != orig_point {
             // The NEW_POS argument was originally nil, so automatically set PT.
-            unsafe {
-                set_point(new_pos as isize);
-            }
+            set_point(new_pos as isize);
         }
     }
 

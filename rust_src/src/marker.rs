@@ -8,10 +8,11 @@ use remacs_macros::lisp_fn;
 use remacs_sys::{BoolBF, EmacsInt, Lisp_Buffer, Lisp_Marker, Lisp_Object};
 use remacs_sys::{buf_charpos_to_bytepos, mget_buffer, mget_bytepos, mget_charpos,
                  mget_insertion_type, mget_next_marker, mset_buffer, mset_insertion_type,
-                 mset_next_marker, set_marker_internal, set_point_both, unchain_marker,
+                 mset_next_marker, set_marker_internal, unchain_marker,
                  Fmake_marker};
 
 use buffers::LispBufferRef;
+use intervals::set_point_both;
 use lisp::{ExternalPtr, LispObject};
 use lisp::defsubr;
 use threads::ThreadState;
@@ -150,7 +151,7 @@ pub extern "C" fn set_point_from_marker(marker: Lisp_Object) {
     } else {
         bytepos = clip_to_bounds(cur_buf.begv_byte, bytepos as EmacsInt, cur_buf.zv_byte);
     };
-    unsafe { set_point_both(charpos, bytepos) };
+    set_point_both(charpos, bytepos);
 }
 
 /// Return insertion type of MARKER: t if it stays after inserted text.

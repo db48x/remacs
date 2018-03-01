@@ -658,28 +658,6 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
   return Fget_text_property (position, prop, object);
 }
 
-DEFUN ("get-char-property-and-overlay", Fget_char_property_and_overlay,
-       Sget_char_property_and_overlay, 2, 3, 0,
-       doc: /* Like `get-char-property', but with extra overlay information.
-The value is a cons cell.  Its car is the return value of `get-char-property'
-with the same arguments--that is, the value of POSITION's property
-PROP in OBJECT.  Its cdr is the overlay in which the property was
-found, or nil, if it was found as a text property or not found at all.
-
-OBJECT is optional and defaults to the current buffer.  OBJECT may be
-a string, a buffer or a window.  For strings, the cdr of the return
-value is always nil, since strings do not have overlays.  If OBJECT is
-a window, then that window's buffer is used, but window-specific
-overlays are considered only if they are associated with OBJECT.  If
-POSITION is at the end of OBJECT, both car and cdr are nil.  */)
-  (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
-{
-  Lisp_Object overlay;
-  Lisp_Object val
-    = get_char_property_and_overlay (position, prop, object, &overlay);
-  return Fcons (val, overlay);
-}
-
 
 DEFUN ("next-char-property-change", Fnext_char_property_change,
        Snext_char_property_change, 1, 2, 0,
@@ -2353,7 +2331,6 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
-  defsubr (&Sget_char_property_and_overlay);
   defsubr (&Snext_char_property_change);
   defsubr (&Sprevious_char_property_change);
   defsubr (&Snext_single_char_property_change);

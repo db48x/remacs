@@ -295,6 +295,8 @@ extern int text_property_stickiness (Lisp_Object prop, Lisp_Object pos,
 
 extern void syms_of_textprop (void);
 
+extern void set_point(ptrdiff_t charpos);
+
 INLINE_HEADER_END
 
 #endif /* EMACS_INTERVALS_H */

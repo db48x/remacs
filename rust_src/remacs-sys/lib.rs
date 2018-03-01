@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![feature(const_size_of)]
+#![feature(const_fn)]
 #![allow(non_camel_case_types, non_snake_case, non_upper_case_globals)]
 
 //! This module contains all FFI declarations.
@@ -1128,6 +1129,7 @@ extern "C" {
     pub static Vbuffer_alist: Lisp_Object;
     pub static Vminibuffer_list: Lisp_Object;
     pub static Vprocess_alist: Lisp_Object;
+    pub static Vinhibit_point_motion_hooks: Lisp_Object;
 
     pub fn staticpro(varaddress: *const Lisp_Object);
 
@@ -1266,9 +1268,18 @@ extern "C" {
     pub fn gc_aset(array: Lisp_Object, idx: ptrdiff_t, val: Lisp_Object);
 
     pub fn hash_remove_from_table(h: *mut Lisp_Hash_Table, key: Lisp_Object);
-    pub fn set_point_both(charpos: ptrdiff_t, bytepos: ptrdiff_t);
-    pub fn set_point(charpos: ptrdiff_t);
     pub fn buf_charpos_to_bytepos(buffer: *const Lisp_Buffer, charpos: ptrdiff_t) -> ptrdiff_t;
+    pub fn textget (plist: Lisp_Object, prop: Lisp_Object) -> Lisp_Object;
+    pub fn buffer_intervals(b: *mut Lisp_Buffer) -> *mut interval;
+    pub fn buffer_has_overlays() -> bool;
+    pub fn bset_point_before_scroll(b: *mut Lisp_Buffer, val: Lisp_Object);
+    pub fn previous_interval(interval: *mut interval) -> *mut interval;
+    pub fn find_interval(tree: *mut interval, position: ptrdiff_t) -> *mut interval;
+    pub fn temp_set_point_both(buffer: *mut Lisp_Buffer, charpos: ptrdiff_t, bytepos: ptrdiff_t);
+    pub fn intervals_equal(i0: *mut interval, i1: *mut interval) -> bool;
+    pub fn Fprevious_char_property_change(position: Lisp_Object, limit: Lisp_Object) -> Lisp_Object;
+    pub fn text_property_stickiness(prop: Lisp_Object, pos: Lisp_Object, buffer: Lisp_Object) -> EmacsInt;
+    pub fn invisible_prop(propval: Lisp_Object, list: Lisp_Object) -> EmacsInt;
 
     pub fn insert(string: *const c_char, nbytes: ptrdiff_t) -> Lisp_Object;
     pub fn insert_and_inherit(string: *const c_char, nbytes: ptrdiff_t) -> Lisp_Object;
@@ -1501,4 +1512,363 @@ fn basic_size_and_align() {
 
     assert!(::std::mem::size_of::<ptrdiff_t>() == 8);
     assert!(::std::isize::MAX == 9223372036854775807);
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct interval {
+    pub total_length: isize,
+    pub position: isize,
+    pub left: *mut interval,
+    pub right: *mut interval,
+    pub up: interval__bindgen_ty_1,
+    pub _bitfield_1: u8,
+    pub plist: Lisp_Object,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union interval__bindgen_ty_1 {
+    pub interval: *mut interval,
+    pub obj: Lisp_Object,
+    _bindgen_union_align: u64,
+}
+#[test]
+fn bindgen_test_layout_interval__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<interval__bindgen_ty_1>(),
+        8usize,
+        concat!("Size of: ", stringify!(interval__bindgen_ty_1))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<interval__bindgen_ty_1>(),
+        8usize,
+        concat!("Alignment of ", stringify!(interval__bindgen_ty_1))
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval__bindgen_ty_1)).interval as *const _ as usize },
+        0usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval__bindgen_ty_1),
+            "::",
+            stringify!(interval)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval__bindgen_ty_1)).obj as *const _ as usize },
+        0usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval__bindgen_ty_1),
+            "::",
+            stringify!(obj)
+        )
+    );
+}
+#[test]
+fn bindgen_test_layout_interval() {
+    assert_eq!(
+        ::std::mem::size_of::<interval>(),
+        56usize,
+        concat!("Size of: ", stringify!(interval))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<interval>(),
+        8usize,
+        concat!("Alignment of ", stringify!(interval))
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).total_length as *const _ as usize },
+        0usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(total_length)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).position as *const _ as usize },
+        8usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(position)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).left as *const _ as usize },
+        16usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(left)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).right as *const _ as usize },
+        24usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(right)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).up as *const _ as usize },
+        32usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(up)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(0 as *const interval)).plist as *const _ as usize },
+        48usize,
+        concat!(
+            "Alignment of field: ",
+            stringify!(interval),
+            "::",
+            stringify!(plist)
+        )
+    );
+}
+impl interval {
+    #[inline]
+    pub fn up_obj(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x1 as u8;
+        let val = (unit_field_val & mask) >> 0usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_up_obj(&mut self, val: BoolBF) {
+        let mask = 0x1 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 0usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub fn gcmarkbit(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x2 as u8;
+        let val = (unit_field_val & mask) >> 1usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_gcmarkbit(&mut self, val: BoolBF) {
+        let mask = 0x2 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 1usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub fn write_protect(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x4 as u8;
+        let val = (unit_field_val & mask) >> 2usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_write_protect(&mut self, val: BoolBF) {
+        let mask = 0x4 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 2usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub fn visible(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x8 as u8;
+        let val = (unit_field_val & mask) >> 3usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_visible(&mut self, val: BoolBF) {
+        let mask = 0x8 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 3usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub fn front_sticky(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x10 as u8;
+        let val = (unit_field_val & mask) >> 4usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_front_sticky(&mut self, val: BoolBF) {
+        let mask = 0x10 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 4usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub fn rear_sticky(&self) -> BoolBF {
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        let mask = 0x20 as u8;
+        let val = (unit_field_val & mask) >> 5usize;
+        unsafe { ::std::mem::transmute(val as u8) }
+    }
+    #[inline]
+    pub fn set_rear_sticky(&mut self, val: BoolBF) {
+        let mask = 0x20 as u8;
+        let val = val as u8 as u8;
+        let mut unit_field_val: u8 = unsafe { ::std::mem::uninitialized() };
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &self._bitfield_1 as *const _ as *const u8,
+                &mut unit_field_val as *mut u8 as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            )
+        };
+        unit_field_val &= !mask;
+        unit_field_val |= (val << 5usize) & mask;
+        unsafe {
+            ::std::ptr::copy_nonoverlapping(
+                &unit_field_val as *const _ as *const u8,
+                &mut self._bitfield_1 as *mut _ as *mut u8,
+                ::std::mem::size_of::<u8>(),
+            );
+        }
+    }
+    #[inline]
+    pub const fn new_bitfield_1(
+        up_obj: BoolBF,
+        gcmarkbit: BoolBF,
+        write_protect: BoolBF,
+        visible: BoolBF,
+        front_sticky: BoolBF,
+        rear_sticky: BoolBF,
+    ) -> u8 {
+        ((((((0 | ((up_obj as u8 as u8) << 0usize) & (0x1 as u8))
+            | ((gcmarkbit as u8 as u8) << 1usize) & (0x2 as u8))
+            | ((write_protect as u8 as u8) << 2usize) & (0x4 as u8))
+            | ((visible as u8 as u8) << 3usize) & (0x8 as u8))
+            | ((front_sticky as u8 as u8) << 4usize) & (0x10 as u8))
+            | ((rear_sticky as u8 as u8) << 5usize) & (0x20 as u8))
+    }
 }

@@ -5,10 +5,11 @@ use std::ffi::CString;
 use remacs_macros::lisp_fn;
 use remacs_sys::{Qbeginning_of_buffer, Qend_of_buffer, Qkill_forward_chars, Qnil,
                  Qundo_auto_amalgamate};
-use remacs_sys::{del_range, initial_define_key, scan_newline_from_point, set_point, set_point_both};
+use remacs_sys::{del_range, initial_define_key, scan_newline_from_point};
 use remacs_sys::EmacsInt;
 
 use editfns::{line_beginning_position, line_end_position};
+use intervals::{set_point, set_point_both};
 use keymap::{current_global_map, Ctl};
 use lisp::LispObject;
 use lisp::defsubr;
@@ -45,7 +46,7 @@ fn move_point(n: LispObject, forward: bool) -> () {
         signal = Qend_of_buffer;
     }
 
-    unsafe { set_point(new_point) };
+    set_point(new_point);
     if signal != Qnil {
         xsignal!(signal);
     }
@@ -98,9 +99,7 @@ pub fn forward_point(n: EmacsInt) -> EmacsInt {
 pub fn beginning_of_line(n: Option<EmacsInt>) -> () {
     let pos = line_beginning_position(n);
 
-    unsafe {
-        set_point(pos as isize);
-    }
+    set_point(pos as isize);
 }
 
 /// Move point to end of current line (in the logical order).
@@ -121,14 +120,14 @@ pub fn end_of_line(n: Option<EmacsInt>) -> () {
     let cur_buf = ThreadState::current_buffer();
     loop {
         newpos = line_end_position(Some(num)) as isize;
-        unsafe { set_point(newpos) };
+        set_point(newpos);
         pt = cur_buf.pt();
         if pt > newpos && cur_buf.fetch_char(pt - 1) == '\n' as i32 {
             // If we skipped over a newline that follows
             // an invisible intangible run,
             // move back to the last tangible position
             // within the line.
-            unsafe { set_point(pt - 1) };
+            set_point(pt - 1);
             break;
         } else if pt > newpos && pt < cur_buf.zv() && cur_buf.fetch_char(newpos) != '\n' as i32 {
             // If we skipped something intangible
@@ -168,7 +167,7 @@ pub fn forward_line(n: Option<EmacsInt>) -> EmacsInt {
     let mut shortage: EmacsInt =
         unsafe { scan_newline_from_point(count, &mut pos, &mut pos_byte) as EmacsInt };
 
-    unsafe { set_point_both(pos, pos_byte) };
+    set_point_both(pos, pos_byte);
 
     if shortage > 0
         && (count <= 0
